@@ -12,7 +12,7 @@ class UR5Robot(AbstractRobot):
         self.ur5_file = ur5_file
         
         pid = p.connect(p.DIRECT)
-        robot_id = p.loadURDF(ur5_file, [0, 0, 0], [0, 0, 0, 1], useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION)
+        robot_id = p.loadURDF(ur5_file, [0, 0, 0], [0, 0, 0, 1], useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION, physicsClientId=pid)
         num_joints = p.getNumJoints(robot_id, physicsClientId=pid)
         joints = [p.getJointInfo(robot_id, i, physicsClientId=pid) for i in range(num_joints)]
         joints = [j[0] for j in joints if j[2] == p.JOINT_REVOLUTE]     
