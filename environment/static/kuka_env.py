@@ -142,43 +142,6 @@ class KukaEnv:
         else:
             return self.maps[index]
 
-    def obs_map(self, num):
-        resolution = 2./(num-1)
-        grid_pos = [np.linspace(-1., 1., num=num) for i in range(3)]
-        points_pos = np.meshgrid(*grid_pos)
-        points_pos = np.concatenate((points_pos[0].reshape(-1, 1), points_pos[1].reshape(-1, 1), points_pos[2].reshape(-1, 1)),
-                       axis=-1)
-        points_obs = np.zeros(points_pos.shape[0]).astype(bool)
-
-        for obstacle in self.obstacles:
-            obstacle_size, obstacle_base = obstacle
-            limit_low, limit_high = obstacle_base - obstacle_size, obstacle_base + obstacle_size
-            limit_low[2], limit_high[2] = limit_low[2] - 0.4, limit_high[2] - 0.4  # translate the point
-            bools = []
-            for i in range(3):
-                obs_mask = np.zeros(num).astype(bool)
-                obs_mask[max(int((limit_low[i]+1)/resolution), 0):min((1+int((limit_high[i]+1)/resolution)), 1+int(2./resolution))] = True
-                bools.append(obs_mask)
-            current_obs = np.meshgrid(*bools)
-            current_obs = np.concatenate((current_obs[0].reshape(-1, 1), current_obs[1].reshape(-1, 1), current_obs[2].reshape(-1, 1)),
-                       axis=-1)
-            points_obs = np.logical_or(points_obs, np.all(current_obs, axis=-1))
-        return points_pos.reshape((num, num, num, -1)), points_obs.reshape((num, num, num))
-
-    def get_robot_points(self, config, end_point=True):
-        points = []
-        for i in range(p.getNumJoints(self.kukaId)):
-            p.resetJointState(self.kukaId, i, config[i])
-        if end_point:
-            point = p.getLinkState(self.kukaId, self.kukaEndEffectorIndex)[0]
-            point = (point[0], point[1], point[2] - 0.4)
-            return point
-        for effector in range(self.kukaEndEffectorIndex + 1):
-            point = p.getLinkState(self.kukaId, effector)[0]
-            point = (point[0], point[1], point[2] - 0.4)
-            points.append(point)
-        return points
-
     def create_voxel(self, halfExtents, basePosition):
         groundColId = p.createCollisionShape(p.GEOM_BOX, halfExtents=halfExtents)
         groundVisID = p.createVisualShape(shapeType=p.GEOM_BOX,

@@ -90,16 +90,6 @@ class SnakeEnv:
         snakeId = p.loadURDF('environment/snake.urdf', useFixedBase=False, flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT)
         p.resetBasePositionAndOrientation(snakeId, [0, 0, SnakeEnv.height], [0, 0, 0, 1])
 
-        # anistropicFriction = [1, 0.01, 0.01]
-        # p.changeDynamics(sphereUid, -1, lateralFriction=2, anisotropicFriction=anistropicFriction)
-        # p.getNumJoints(sphereUid)
-        # for i in range(p.getNumJoints(sphereUid)):
-        #     p.getJointInfo(sphereUid, i)
-        #     p.changeDynamics(sphereUid, i, lateralFriction=2, anisotropicFriction=anistropicFriction)
-
-        # pose_range = [(p.getJointInfo(sphereUid, jointId)[8], p.getJointInfo(sphereUid, jointId)[9]) for jointId in
-        #               range(p.getNumJoints(sphereUid))]
-
         red = [0.95, 0.1, 0.1, 1]
         green = [0.1, 0.8, 0.1, 1]
         yellow = [1.0, 0.8, 0., 1]

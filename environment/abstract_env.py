@@ -69,3 +69,13 @@ class AbstractEnv(ABC):
     @abstractmethod
     def _state_fp(self, state):
         pass
+    
+    def distance(self, from_state, to_state):
+        '''
+        Distance metric
+        '''
+        to_state = np.maximum(to_state, np.array(self.pose_range)[:, 0])
+        to_state = np.minimum(to_state, np.array(self.pose_range)[:, 1])
+        diff = np.abs(to_state - from_state)
+
+        return np.sqrt(np.sum(diff ** 2, axis=-1))    

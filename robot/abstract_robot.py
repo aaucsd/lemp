@@ -5,25 +5,33 @@ from environment.abstract_env import AbstractEnv
 class AbstractRobot(ABC):
     
     # Initialize env
-    def __init__(self, limits_low, limits_high):
-        self.config_dim = len(limits_low)
-        self.limits_low = np.array(limits_low)
-        self.limits_high = np.array(limits_high)
+    def __init__(self, limits_low, limits_high, joints, collision_eps):
+        self.limits_low = limits_low
+        self.limits_high = limits_high
+        self.joints = joints
+        self.collision_eps = collision_eps
 
     # =====================pybullet module=======================
-    @abstractmethod
-    def load(self):
-        '''
-        The function to load the robot in the environment
-        '''
-        pass
     
+    def load(self, config):
+        robot_id = self.load2pybullet()
+        self.collision_check_count = 0
+        self.robot_id = robot_id
+        self.set_config(config)
+        
     @abstractmethod
-    def set_config(self, config):
+    def load2pybullet(self):
         '''
-        The function to set the configuration of the robot
-        '''
-        pass   
+        load into PyBullet and return the id of robot
+        '''        
+        return 0
+    
+    def set_config(self, config, robot_id=None):
+        if robot_id is None:
+            robot_id = self.robot_id
+        for i, c in zip(self.joints, config):
+            p.resetJointState(robot_id, i, c)
+        p.performCollisionDetection()
         
     # =====================sampling module=======================        
         
@@ -64,11 +72,47 @@ class AbstractRobot(ABC):
         return init, goal
     
     # =====================internal collision check module=======================
+    
+    def _valid_state(self, state):
+        return (state >= np.array(self.limits_low)).all() and \
+               (state <= np.array(self.limits_high)).all()      
+    
+    def _state_fp(self, state):
+        if not self._valid_state(state):
+            return False
 
-    @abstractmethod
-    def _edge_fp(self, env: AbstractEnv, state, new_state):
-        pass
+        self.set_config(state)
+        p.performCollisionDetection()
+        if len(p.getContactPoints(self.robot_id)) == 0:
+            self.collision_check_count += 1
+            return True
+        else:
+            self.collision_check_count += 1
+            return False
+    
+    def _iterative_check_segment(self, left, right):
+        if np.sum(np.abs(left - left)) > 0.1:
+            mid = (left + right) / 2.0
+            if not self._state_fp(mid):
+                return False
+            return self._iterative_check_segment(left, mid) and self._iterative_check_segment(mid, right)
 
-    @abstractmethod
-    def _state_fp(self, env: AbstractEnv, state):
-        pass
+        return True 
+    
+    def _edge_fp(self, state, new_state):
+        assert state.size == new_state.size
+
+        if not self._valid_state(state) or not self._valid_state(new_state):
+            return False
+        if not self._state_fp(state) or not self._state_fp(new_state):
+            return False
+
+        disp = new_state - state
+
+        d = self.distance(state, new_state)
+        K = int(d / self.collision_eps)
+        for k in range(0, K):
+            c = state + k * 1. / K * disp
+            if not self._state_fp(c):
+                return False
+        return True
