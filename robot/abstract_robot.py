@@ -1,29 +1,43 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from environment.abstract_env import AbstractEnv
+from objects.dynamic_object import MovableObject, DynamicObject
+from objects.trajectory import AbstractTrajectory
+import pybullet as p
 
-class AbstractRobot(ABC):
+class AbstractRobot(MovableObject, ABC):
     
     # Initialize env
-    def __init__(self, urdf_file, collision_eps):
+    def __init__(self, base_position, base_orientation, urdf_file, collision_eps, **kwargs):
+        # for loading the pybullet
+        self.base_position = base_position
+        self.base_orientation = base_orientation
+        
         self.collision_eps = collision_eps
         self.urdf_file = urdf_file
+
         joints, limits_low, limits_high = self._get_joints_and_limits(self.urdf_file)
         self.joints = joints
         self.limits_low = limits_low
         self.limits_high = limits_high
-    
+        self.config_dim = len(self.joints)
+        
+        kwargs['base_position'] = base_position
+        kwargs['base_orientation'] = base_orientation
+        super(AbstractRobot, self).__init__(**kwargs)
+
     @abstractmethod
     def _get_joints_and_limits(self, urdf_file):
         raise NotImplementedError
 
     # =====================pybullet module=======================
     
-    def load(self, config, **kwargs):
-        robot_id = self.load2pybullet(**kwargs)
+    def load(self, config=None, **kwargs):
+        item_id = self.load2pybullet(**kwargs)
         self.collision_check_count = 0
-        self.robot_id = robot_id
-        self.set_config(config)
+        self.item_id = item_id
+        if config is not None:
+            self.set_config(config)
         
     @abstractmethod
     def load2pybullet(self, **kwargs):
@@ -32,11 +46,11 @@ class AbstractRobot(ABC):
         '''        
         raise NotImplementedError
     
-    def set_config(self, config, robot_id=None):
-        if robot_id is None:
-            robot_id = self.robot_id
+    def set_config(self, config, item_id=None):
+        if item_id is None:
+            item_id = self.item_id
         for i, c in zip(self.joints, config):
-            p.resetJointState(robot_id, i, c)
+            p.resetJointState(item_id, i, c)
         p.performCollisionDetection()
         
     # =====================sampling module=======================        
@@ -89,7 +103,7 @@ class AbstractRobot(ABC):
 
         self.set_config(state)
         p.performCollisionDetection()
-        if len(p.getContactPoints(self.robot_id)) == 0:
+        if len(p.getContactPoints(self.item_id)) == 0:
             self.collision_check_count += 1
             return True
         else:
@@ -122,3 +136,13 @@ class AbstractRobot(ABC):
             if not self._state_fp(c):
                 return False
         return True
+
+
+class DynamicRobotFactory:
+    
+    @staticmethod
+    def create_dynamic_robot_class(Robot):
+        class DynamicRobot(Robot, DynamicObject):
+            def __init__(self, trajectory: AbstractTrajectory, **kwargs):
+                super(DynamicRobot, self).__init__(item=self, trajectory=trajectory, **kwargs)
+        return DynamicRobot
