@@ -5,26 +5,32 @@ from environment.abstract_env import AbstractEnv
 class AbstractRobot(ABC):
     
     # Initialize env
-    def __init__(self, limits_low, limits_high, joints, collision_eps):
+    def __init__(self, urdf_file, collision_eps):
+        self.collision_eps = collision_eps
+        self.urdf_file = urdf_file
+        joints, limits_low, limits_high = self._get_joints_and_limits(self.urdf_file)
+        self.joints = joints
         self.limits_low = limits_low
         self.limits_high = limits_high
-        self.joints = joints
-        self.collision_eps = collision_eps
+    
+    @abstractmethod
+    def _get_joints_and_limits(self, urdf_file):
+        raise NotImplementedError
 
     # =====================pybullet module=======================
     
-    def load(self, config):
-        robot_id = self.load2pybullet()
+    def load(self, config, **kwargs):
+        robot_id = self.load2pybullet(**kwargs)
         self.collision_check_count = 0
         self.robot_id = robot_id
         self.set_config(config)
         
     @abstractmethod
-    def load2pybullet(self):
+    def load2pybullet(self, **kwargs):
         '''
         load into PyBullet and return the id of robot
         '''        
-        return 0
+        raise NotImplementedError
     
     def set_config(self, config, robot_id=None):
         if robot_id is None:
