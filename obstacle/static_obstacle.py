@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractObstacle(ABC):
+class StaticObstacle(ABC):
 
-    def __init__(self):
-        pass
+    @abstractmethod
+    def load2pybullet(self, **kwargs):
+        raise NotImplementedError
