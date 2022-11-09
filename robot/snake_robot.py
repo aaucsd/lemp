@@ -6,21 +6,20 @@ import pybullet as p
 class SnakeRobot(AbstractRobot):
     
     # Initialize env
-    def __init__(self, snake_file="../data/robot/snake/snake.urdf", collision_eps=0.1):
-
-        self.collision_eps = collision_eps
-        self.snake_file = snake_file
-        
+    def __init__(self, urdf_file="../data/robot/snake/snake.urdf", collision_eps=0.1):
+        super().__init__(urdf_file, collision_eps)
+    
+    def _get_joints_and_limits(self, urdf_file):
         limits_low = [-9]*2 + [-np.pi]*5
         limits_high = [9]*2 + [np.pi]*5
-
-        super().__init__(limits_low, limits_high, list(range(len(limits_low))), collision_eps)
+        return list(range(len(limits_low))), limits_low, limits_high
     
-    def load2pybullet(self, phantom=False):
+    def load2pybullet(self, phantom=False, base_position=(0, 0, 0.5), base_orientation=(0, 0, 0, 1)):
+        
         sphereRadius = 0.25
         alpha = 0.5 if phantom else 1.
-        robot_id = p.loadURDF(self.snake_file, useFixedBase=False, flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT)
-        p.resetBasePositionAndOrientation(robot_id, [0, 0, 0.5], [0, 0, 0, 1])
+        robot_id = p.loadURDF(self.urdf_file, useFixedBase=False, flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT)
+        p.resetBasePositionAndOrientation(robot_id, base_position, base_orientation)
 
         red = [0.95, 0.1, 0.1, 1]
         green = [0.1, 0.8, 0.1, 1]
