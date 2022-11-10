@@ -32,12 +32,11 @@ class AbstractRobot(MovableObject, ABC):
 
     # =====================pybullet module=======================
     
-    def load(self, config=None, **kwargs):
+    def load(self, **kwargs):
         item_id = self.load2pybullet(**kwargs)
         self.collision_check_count = 0
         self.item_id = item_id
-        if config is not None:
-            self.set_config(config)
+        return item_id
         
     @abstractmethod
     def load2pybullet(self, **kwargs):
@@ -93,6 +92,15 @@ class AbstractRobot(MovableObject, ABC):
     
     # =====================internal collision check module=======================
     
+    def no_collision(self):
+        p.performCollisionDetection()
+        if len(p.getContactPoints(self.item_id)) == 0:
+            self.collision_check_count += 1
+            return True
+        else:
+            self.collision_check_count += 1
+            return False        
+    
     def _valid_state(self, state):
         return (state >= np.array(self.limits_low)).all() and \
                (state <= np.array(self.limits_high)).all()      
@@ -102,13 +110,7 @@ class AbstractRobot(MovableObject, ABC):
             return False
 
         self.set_config(state)
-        p.performCollisionDetection()
-        if len(p.getContactPoints(self.item_id)) == 0:
-            self.collision_check_count += 1
-            return True
-        else:
-            self.collision_check_count += 1
-            return False
+        return self.no_collision()
     
     def _iterative_check_segment(self, left, right):
         if np.sum(np.abs(left - left)) > 0.1:
@@ -136,6 +138,16 @@ class AbstractRobot(MovableObject, ABC):
             if not self._state_fp(c):
                 return False
         return True
+    
+    def distance(self, from_state, to_state):
+        '''
+        Distance metric
+        '''
+        to_state = np.maximum(to_state, np.array(self.pose_range)[:, 0])
+        to_state = np.minimum(to_state, np.array(self.pose_range)[:, 1])
+        diff = np.abs(to_state - from_state)
+
+        return np.sqrt(np.sum(diff ** 2, axis=-1))    
 
 
 class DynamicRobotFactory:

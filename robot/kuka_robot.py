@@ -4,7 +4,7 @@ from robot.abstract_robot import AbstractRobot
 import pybullet as p
 
 class KukaRobot(AbstractRobot):
-    
+
     # Initialize env
     def __init__(self, base_position=(0, 0, 0), base_orientation=(0, 0, 0, 1), urdf_file="../data/robot/kuka_iiwa/model_0.urdf", collision_eps=0.5, **kwargs):
         super(KukaRobot, self).__init__(base_position, base_orientation, urdf_file, collision_eps, **kwargs)
@@ -18,6 +18,6 @@ class KukaRobot(AbstractRobot):
         p.disconnect(pid)
         return list(range(num_joints)), limits_low, limits_high
     
-    def load2pybullet(self):
-        item_id = p.loadURDF(self.urdf_file, self.base_position, self.base_orientation, useFixedBase=True)
+    def load2pybullet(self, **kwargs):
+        item_id = p.loadURDF(self.urdf_file, self.base_position, self.base_orientation, useFixedBase=True, **kwargs)
         return item_id
