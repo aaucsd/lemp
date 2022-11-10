@@ -3,21 +3,20 @@ from environment.abstract_env import AbstractEnv
 from robot.snake_robot import SnakeRobot
 
 
-class SnakeEnv:
+class SnakeEnv(AbstractEnv):
     def __init__(self, objects, robot_config=None):
         if robot_config is None:
-            robot = SnakeEnv()
+            robot = SnakeRobot()
         else:
-            robot = SnakeEnv(**robot_config)
+            robot = SnakeRobot(**robot_config)
         super(SnakeEnv, self).__init__(objects, robot)
 
-    def render(self):
+    def set_camera_angle(self):
         p.resetDebugVisualizerCamera(
             cameraDistance=3,
             cameraYaw=0,
             cameraPitch=-89.8,
-            cameraTargetPosition=[0, 0, 10])  
-        return p.getCameraImage(width=1080, height=720, lightDirection=[0, 0, -1], shadow=0, renderer=p.ER_BULLET_HARDWARE_OPENGL)[2]            
+            cameraTargetPosition=[0, 0, 10])
     
     def post_process(self):
         plane = p.createCollisionShape(p.GEOM_PLANE)

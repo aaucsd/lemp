@@ -11,6 +11,7 @@ class AbstractObject(ABC):
     def load(self, **kwargs):
         item_id = self.load2pybullet(**kwargs)
         self.item_id = item_id
+        return item_id
 
     @abstractmethod
     def load2pybullet(self, **kwargs):

@@ -12,16 +12,14 @@ class UR5Env(AbstractEnv):
             robot = UR5Robot(**robot_config)
         super(UR5Env, self).__init__(objects, robot)        
 
-    def post_process(self):
-        plane = p.createCollisionShape(p.GEOM_PLANE)
-        self.plane_id = p.createMultiBody(0, plane)
-        p.setCollisionFilterPair(self.robot_id, self.plane_id, 1, -1, 0)
-        
-    def render(self):
-        target = p.getDebugVisualizerCamera()[11]
+    def set_camera_angle(self):
         p.resetDebugVisualizerCamera(
             cameraDistance=1.1,
             cameraYaw=12.040756225585938,
             cameraPitch=-37.56093978881836,
-            cameraTargetPosition=[0, 0, 0.7]) 
-        return p.getCameraImage(width=1080, height=720, lightDirection=[0, 0, -1], shadow=0, renderer=p.ER_BULLET_HARDWARE_OPENGL)[2]
+            cameraTargetPosition=[0, 0, 0.7])         
+        
+    def post_process(self):
+        plane = p.createCollisionShape(p.GEOM_PLANE)
+        self.plane_id = p.createMultiBody(0, plane)
+        p.setCollisionFilterPair(self.robot_id, self.plane_id, 1, -1, 0)

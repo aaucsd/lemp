@@ -36,6 +36,7 @@ class AbstractRobot(MovableObject, ABC):
         item_id = self.load2pybullet(**kwargs)
         self.collision_check_count = 0
         self.item_id = item_id
+        return item_id
         
     @abstractmethod
     def load2pybullet(self, **kwargs):
