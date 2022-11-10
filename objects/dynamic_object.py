@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from objects.abstract_object import AbstractObject
 from objects.trajectory import AbstractTrajectory
+import pybullet as p
 
 
 class MovableObject(AbstractObject, ABC):
