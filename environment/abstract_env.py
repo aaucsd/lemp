@@ -1,81 +1,66 @@
 from abc import ABC, abstractmethod
 import numpy as np
+import pybullet_data
+import pybullet as p
+
 
 class AbstractEnv(ABC):
+
+    def __init__(self, objects, robot):
+        self.objects = objects
+        self.robot = robot
+
+    def load(self, **kwargs):
+        self.initialize_pybullet(**kwargs)
+        
+        self.object_ids = []
+        self.robot_id = None
+        
+        for object_ in self.objects:
+            self.object_ids.append(object_.load())
+        self.robot_id = self.robot.load()
+
+        self.post_process()        
+        p.performCollisionDetection()
+        
+    def initialize_pybullet(self, reconnect=True, GUI=False, light_height_z=100):
+        
+        if reconnect:
+            try:
+                # close all the previous pybullet connections
+                while True:
+                    p.resetSimulation()
+                    p.disconnect()
+            except:
+                pass
+        
+            if GUI:
+                p.connect(p.GUI, options='--background_color_red=1.0 --background_color_green=1.0 --background_color_blue=1.0')
+            else:
+                p.connect(p.DIRECT)
+        
+        p.resetSimulation()
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0, lightPosition = [0, 0, light_height_z])
+        if GUI:        
+            self.set_camera_angle()
+        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        p.setGravity(0, 0, -10)
+        p.setRealTimeSimulation(0)
+
+    def post_process(self):
+        """
+        Do nothing for parent class
+        """           
+        pass
     
-    # Initialize env
-    def __init__(self, limits_low, limits_high):
-        self.config_dim = len(limits_low)
-        self.limits_low = np.array(limits_low)
-        self.limits_high = np.array(limits_high)
+    def set_camera_angle(self):
+        """
+        Do nothing for parent class
+        """           
+        pass    
 
-    @abstractmethod
-    def _reset(self):
-        self.finished = False
-
-    @abstractmethod
     def render(self):
         """
         Return a snapshot of the current environment
-        :abstract
         """        
-        pass
-
-    def sample_n_points(self, n, need_negative=False):
-        positive = []
-        negative = []
-        for i in range(n):
-            while True:
-                state = self.uniform_sample()
-                if self._state_fp(state):
-                    positive.append(state)
-                    break
-                else:
-                    negative.append(state)
-        if not need_negative:
-            return positive
-        else:
-            return positive, negative
-
-    def sample_free_config(self):
-        while True:
-            state = self.uniform_sample()
-            if self._state_fp(state):
-                return state
-
-    def set_random_init_goal(self):
-        while True:
-            init, goal = self.sample_free_config(), self.sample_free_config()
-            if np.sum(np.abs(init - goal)) != 0:
-                break
-        self.init_state, self.goal_state = init, goal
-
-    def uniform_sample(self, n=1):
-        '''
-        Uniformlly sample in the configuration space
-        '''
-        sample = np.random.uniform(self.limits_low.reshape(1, -1), self.limits_high.reshape(1, -1), (n, self.config_dim))
-        if n==1:
-            return sample.reshape(-1)
-        else:
-            return sample
-    
-    # =====================internal collision check module=======================
-
-    @abstractmethod
-    def _edge_fp(self, state, new_state):
-        pass
-
-    @abstractmethod
-    def _state_fp(self, state):
-        pass
-    
-    def distance(self, from_state, to_state):
-        '''
-        Distance metric
-        '''
-        to_state = np.maximum(to_state, np.array(self.pose_range)[:, 0])
-        to_state = np.minimum(to_state, np.array(self.pose_range)[:, 1])
-        diff = np.abs(to_state - from_state)
-
-        return np.sqrt(np.sum(diff ** 2, axis=-1))    
+        return p.getCameraImage(width=1080, height=720, lightDirection=[0, 0, -1], shadow=0, renderer=p.ER_BULLET_HARDWARE_OPENGL)[2]  
