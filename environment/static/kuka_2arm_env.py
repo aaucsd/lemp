@@ -3,7 +3,7 @@ import pybullet as p
 from time import sleep
 import pybullet_data
 import pickle
-from environment.abstract_env import StaticEnv
+from environment.static_env import StaticEnv
 
 
 class Kuka2Env(StaticEnv):

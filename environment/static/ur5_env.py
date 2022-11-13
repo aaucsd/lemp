@@ -1,9 +1,9 @@
 import pybullet as p
-from environment.abstract_env import AbstractEnv
+from environment.static_env import StaticEnv
 from robot.ur5_robot import UR5Robot
 
 
-class UR5Env(AbstractEnv):
+class UR5Env(StaticEnv):
 
     def __init__(self, objects, robot_config=None):
         if robot_config is None:
