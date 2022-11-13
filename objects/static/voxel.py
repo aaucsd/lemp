@@ -4,14 +4,14 @@ import numpy as np
 
 class VoxelObject(AbstractObject):
     
-    def __init__(self, base_position, base_orientation, half_extents, color=None):
-        super().__init__(base_position=base_position, base_orientation=base_orientation)
+    def __init__(self, base_position, base_orientation, half_extents, color=None, **kwargs):
+        super().__init__(base_position=base_position, base_orientation=base_orientation, **kwargs)
         self.half_extents = half_extents
         if color is None:
             color = np.random.uniform(0, 1, size=3).tolist() + [1]
         self.color = color
 
-    def load(self):
+    def load2pybullet(self):
         groundColId = p.createCollisionShape(p.GEOM_BOX, halfExtents=self.half_extents)
 
         groundVisID = p.createVisualShape(shapeType=p.GEOM_BOX,
