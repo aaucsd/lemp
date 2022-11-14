@@ -6,51 +6,22 @@ from objects.trajectory import AbstractTrajectory
 import pybullet as p
 
 class AbstractRobot(MovableObject, ABC):
-    
-    # Initialize env
-    def __init__(self, base_position, base_orientation, urdf_file, collision_eps, **kwargs):
-        # for loading the pybullet
-        self.base_position = base_position
-        self.base_orientation = base_orientation
-        
-        self.collision_eps = collision_eps
-        self.urdf_file = urdf_file
 
-        joints, limits_low, limits_high = self._get_joints_and_limits(self.urdf_file)
-        self.joints = joints
+    # An abstract robot    
+    def __init__(self, limits_low, limits_high, **kwargs):
         self.limits_low = limits_low
         self.limits_high = limits_high
-        self.config_dim = len(self.joints)
-        
-        kwargs['base_position'] = base_position
-        kwargs['base_orientation'] = base_orientation
+        self.config_dim = len(self.limits_low)
         super(AbstractRobot, self).__init__(**kwargs)
-
-    @abstractmethod
-    def _get_joints_and_limits(self, urdf_file):
-        raise NotImplementedError
 
     # =====================pybullet module=======================
     
-    def load(self, **kwargs):
-        item_id = self.load2pybullet(**kwargs)
-        self.collision_check_count = 0
-        self.item_id = item_id
-        return item_id
-        
     @abstractmethod
-    def load2pybullet(self, **kwargs):
-        '''
-        load into PyBullet and return the id of robot
-        '''        
-        raise NotImplementedError
-    
     def set_config(self, config, item_id=None):
-        if item_id is None:
-            item_id = self.item_id
-        for i, c in zip(self.joints, config):
-            p.resetJointState(item_id, i, c)
-        p.performCollisionDetection()
+        '''
+        set a configuration
+        '''        
+        raise NotImplementedError        
         
     # =====================sampling module=======================        
         
@@ -92,14 +63,12 @@ class AbstractRobot(MovableObject, ABC):
     
     # =====================internal collision check module=======================
     
+    @abstractmethod
     def no_collision(self):
-        p.performCollisionDetection()
-        if len(p.getContactPoints(self.item_id)) == 0:
-            self.collision_check_count += 1
-            return True
-        else:
-            self.collision_check_count += 1
-            return False        
+        '''
+        Perform the collision detection
+        '''
+        raise NotImplementedError      
     
     def _valid_state(self, state):
         return (state >= np.array(self.limits_low)).all() and \
@@ -147,7 +116,35 @@ class AbstractRobot(MovableObject, ABC):
         to_state = np.minimum(to_state, np.array(self.pose_range)[:, 1])
         diff = np.abs(to_state - from_state)
 
-        return np.sqrt(np.sum(diff ** 2, axis=-1))    
+        return np.sqrt(np.sum(diff ** 2, axis=-1))   
+    
+    # =====================internal collision check module for dynamic environment=======================    
+    
+    def _state_fp_dynamic(self, env, state, t):
+        for each_object in env.objects:
+            if isinstance(each_object, DynamicObject):
+                each_object.set_config_at_time(t)
+        return self._state_fp(state)
+    
+    def _edge_fp_dynamic(self, env, state, new_state, t_start, t_end):
+        assert state.size == new_state.size
+
+        if not self._valid_state(state) or not self._valid_state(new_state):
+            return False
+        if not self._state_fp_dynamic(env, state, t_start) or not self._state_fp_dynamic(env, new_state, t_end):
+            return False
+
+        disp = new_state - state
+        t_disp = t_end - t_start
+
+        d = self.distance(state, new_state)
+        K = int(d / self.collision_eps)
+        for k in range(0, K):
+            c = state + k * 1. / K * disp
+            t_c = t_start + k * 1. / K * t_disp
+            if not self._state_fp_dynamic(env, c, t_c):
+                return False
+        return True             
 
 
 class DynamicRobotFactory:

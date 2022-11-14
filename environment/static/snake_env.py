@@ -1,9 +1,9 @@
 import pybullet as p
-from environment.abstract_env import AbstractEnv
+from environment.static_env import StaticEnv
 from robot.snake_robot import SnakeRobot
 
 
-class SnakeEnv(AbstractEnv):
+class SnakeEnv(StaticEnv):
     def __init__(self, objects, robot_config=None):
         if robot_config is None:
             robot = SnakeRobot()

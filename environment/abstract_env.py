@@ -7,12 +7,17 @@ import pybullet as p
 class AbstractEnv(ABC):
 
     def __init__(self, objects, robot):
+        '''
+        objects is a list of AbstractObject (static objects) and DynamicObject (dynamic object)
+        robot is a instance of AbstractRobot
+        If there are multiple robots that will be controlled simultaneously, use robot.grouping.RobotGroup to group these robots into one meta-robot first
+        '''
         self.objects = objects
         self.robot = robot
 
     def load(self, **kwargs):
         self.initialize_pybullet(**kwargs)
-        
+
         self.object_ids = []
         self.robot_id = None
         
@@ -22,7 +27,7 @@ class AbstractEnv(ABC):
 
         self.post_process()        
         p.performCollisionDetection()
-        
+
     def initialize_pybullet(self, reconnect=True, GUI=False, light_height_z=100):
         
         if reconnect:
@@ -49,7 +54,7 @@ class AbstractEnv(ABC):
 
     def post_process(self):
         """
-        Do nothing for parent class
+        Do nothing for parent class, optionally masking collision among groups of objects
         """           
         pass
     
