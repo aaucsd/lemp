@@ -6,12 +6,11 @@ import pybullet as p
 
 class IndividualRobot(AbstractRobot, ABC):
     # An individual robot
-    def __init__(self, base_position, base_orientation, urdf_file, collision_eps, **kwargs):
+    def __init__(self, base_position, base_orientation, urdf_file, **kwargs):
         # for loading the pybullet
         self.base_position = base_position
         self.base_orientation = base_orientation
         
-        self.collision_eps = collision_eps
         self.urdf_file = urdf_file
 
         joints, limits_low, limits_high = self._get_joints_and_limits(self.urdf_file)
