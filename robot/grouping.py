@@ -10,7 +10,7 @@ class RobotGroup(AbstractRobot):
     Grouping multiple robots together into a meta-robot
     '''
 
-    def __init__(self, robots, grouping_mask_fn=None, **kwargs):
+    def __init__(self, robots, grouping_mask_fn=None, collision_eps=None, **kwargs):
         '''
         grouping mask function aims to assign the collision mask to each robot
         the argument to the function is an instance of the robot group
@@ -19,10 +19,12 @@ class RobotGroup(AbstractRobot):
         assert np.all([isinstance(robot, IndividualRobot) for robot in robots])
         self.robots = robots
         self.grouping_mask_fn = grouping_mask_fn
-        self.collision_eps = min([robot.collision_eps for robot in self.robots])
+        if collision_eps is None:
+            collision_eps = min([robot.collision_eps for robot in self.robots])
         limits_low, limits_high = self._get_limits()
         super(RobotGroup, self).__init__(limits_low=limits_low, 
-                                         limits_high=limits_high, **kwargs)
+                                         limits_high=limits_high, 
+                                         collision_eps=collision_eps, **kwargs)
 
     def _get_limits(self):
         all_limits_low = []
@@ -55,7 +57,7 @@ class RobotGroup(AbstractRobot):
     
     def no_collision(self):
         p.performCollisionDetection()
-        if np.all([len(p.getContactPoints(item_id)) == 0] for item_id in self.item_ids):
+        if np.all([len(p.getContactPoints(item_id)) == 0 for item_id in self.item_ids]):
             self.collision_check_count += 1
             return True
         else:

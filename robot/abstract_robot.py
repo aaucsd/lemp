@@ -8,9 +8,10 @@ import pybullet as p
 class AbstractRobot(MovableObject, ABC):
 
     # An abstract robot    
-    def __init__(self, limits_low, limits_high, **kwargs):
+    def __init__(self, limits_low, limits_high, collision_eps, **kwargs):
         self.limits_low = limits_low
         self.limits_high = limits_high
+        self.collision_eps = collision_eps
         self.config_dim = len(self.limits_low)
         super(AbstractRobot, self).__init__(**kwargs)
 
