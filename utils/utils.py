@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 
-def save_gif(imgs, gif_name):
+def save_gif(imgs, gif_name, duration=50):
     # Setup the 4 dimensional array
     a_frames = []
     for img in imgs:
@@ -9,4 +9,4 @@ def save_gif(imgs, gif_name):
     a = np.stack(a_frames)
 
     ims = [Image.fromarray(a_frame) for a_frame in a]
-    ims[0].save(gif_name, save_all=True, append_images=ims[1:], loop=0, duration=50)    
+    ims[0].save(gif_name, save_all=True, append_images=ims[1:], loop=0, duration=duration)
