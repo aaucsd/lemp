@@ -5,7 +5,9 @@ import numpy as np
 class VoxelObject(AbstractObject):
     
     def __init__(self, base_position, base_orientation, half_extents, color=None, **kwargs):
-        super().__init__(base_position=base_position, base_orientation=base_orientation, **kwargs)
+        super().__init__(**kwargs)
+        self.base_position = base_position
+        self.base_orientation = base_orientation
         self.half_extents = half_extents
         if color is None:
             color = np.random.uniform(0, 1, size=3).tolist() + [1]

@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from robot.abstract_robot import AbstractRobot
+from robot.individual_robot import IndividualRobot
 import pybullet as p
 
-class UR5Robot(AbstractRobot):
+class UR5Robot(IndividualRobot):
     
-    # Initialize env
     def __init__(self, base_position=(0, 0, 0), base_orientation=(0, 0, 0, 1), urdf_file="../data/robot/ur5/ur5.urdf", collision_eps=0.1, **kwargs):
-        super(UR5Robot, self).__init__(base_position, base_orientation, urdf_file, collision_eps, **kwargs)
+        super(UR5Robot, self).__init__(base_position=base_position, 
+                                       base_orientation=base_orientation, 
+                                       urdf_file=urdf_file, 
+                                       collision_eps=collision_eps, **kwargs)
         
     def _get_joints_and_limits(self, urdf_file):
         pid = p.connect(p.DIRECT)
@@ -20,6 +22,6 @@ class UR5Robot(AbstractRobot):
         p.disconnect(pid)
         return joints, limits_low, limits_high
     
-    def load2pybullet(self):
+    def load2pybullet(self, **kwargs):
         item_id = p.loadURDF(self.urdf_file, self.base_position, self.base_orientation, useFixedBase=True, flags=p.URDF_USE_SELF_COLLISION)
         return item_id

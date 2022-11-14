@@ -1,13 +1,15 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from robot.abstract_robot import AbstractRobot
+from robot.individual_robot import IndividualRobot
 import pybullet as p
 
-class KukaRobot(AbstractRobot):
+class KukaRobot(IndividualRobot):
 
-    # Initialize env
     def __init__(self, base_position=(0, 0, 0), base_orientation=(0, 0, 0, 1), urdf_file="../data/robot/kuka_iiwa/model_0.urdf", collision_eps=0.5, **kwargs):
-        super(KukaRobot, self).__init__(base_position, base_orientation, urdf_file, collision_eps, **kwargs)
+        super(KukaRobot, self).__init__(base_position=base_position, 
+                                        base_orientation=base_orientation, 
+                                        urdf_file=urdf_file, 
+                                        collision_eps=collision_eps, **kwargs)
         
     def _get_joints_and_limits(self, urdf_file):
         pid = p.connect(p.DIRECT)

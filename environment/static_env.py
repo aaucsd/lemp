@@ -9,4 +9,4 @@ class StaticEnv(AbstractEnv):
         return self.robot._state_fp(state)
     
     def edge_fp(self, state, new_state):
-        return self.robot._edge_fp(state)
+        return self.robot._edge_fp(state, new_state)
