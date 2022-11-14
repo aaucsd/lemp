@@ -112,8 +112,8 @@ class AbstractRobot(MovableObject, ABC):
         '''
         Distance metric
         '''
-        to_state = np.maximum(to_state, np.array(self.pose_range)[:, 0])
-        to_state = np.minimum(to_state, np.array(self.pose_range)[:, 1])
+        to_state = np.maximum(to_state, np.array(self.limits_low))
+        to_state = np.minimum(to_state, np.array(self.limits_high))
         diff = np.abs(to_state - from_state)
 
         return np.sqrt(np.sum(diff ** 2, axis=-1))   
