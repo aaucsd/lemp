@@ -10,7 +10,7 @@ class MovableObject(AbstractObject, ABC):
     def set_config(self, config):
         raise NotImplementedError
         
-        
+
 class MovableBaseObject(MovableObject):
 
     def __init__(self, move_mode, **kwargs):
@@ -42,7 +42,7 @@ class DynamicObject(AbstractObject):
         spec = self.trajectory.get_spec(t)
         self.trajectory.set_spec(self.item, spec) 
         
-        
+
 class MovableObjectFactory:      
     @staticmethod
     def create_movable_object_class(ObjectX, MovableXObject):

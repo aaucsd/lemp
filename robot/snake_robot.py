@@ -1,24 +1,28 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from robot.abstract_robot import AbstractRobot
+from robot.individual_robot import IndividualRobot
 import pybullet as p
 import transforms3d
 
-class SnakeRobot(AbstractRobot):
+class SnakeRobot(IndividualRobot):
     
-    # Initialize env
-    def __init__(self, base_position=(0, 0, 0.5), base_orientation=(0, 0, 0, 1), urdf_file="../data/robot/snake/snake.urdf", collision_eps=0.1, **kwargs):
-        super(SnakeRobot, self).__init__(base_position, base_orientation, urdf_file, collision_eps, **kwargs)
+    def __init__(self, base_position=(0, 0, 0.5), base_orientation=(0, 0, 0, 1), 
+                       urdf_file="../data/robot/snake/snake.urdf", collision_eps=0.1, 
+                       phantom=False, **kwargs):
+        self.phantom = phantom
+        super(SnakeRobot, self).__init__(base_position=base_position, 
+                                         base_orientation=base_orientation, 
+                                         urdf_file=urdf_file, 
+                                         collision_eps=collision_eps, **kwargs)
     
     def _get_joints_and_limits(self, urdf_file):
         limits_low = [-9]*2 + [-np.pi]*5
         limits_high = [9]*2 + [np.pi]*5
         return list(range(len(limits_low))), limits_low, limits_high
     
-    def load2pybullet(self, phantom=False):
+    def load2pybullet(self, **kwargs):
         
-        sphereRadius = 0.25
-        alpha = 0.5 if phantom else 1.
+        alpha = 0.5 if self.phantom else 1.
         item_id = p.loadURDF(self.urdf_file, useFixedBase=False, flags=p.URDF_USE_SELF_COLLISION | p.URDF_USE_SELF_COLLISION_INCLUDE_PARENT)
         p.resetBasePositionAndOrientation(item_id, self.base_position, self.base_orientation)
 
@@ -31,13 +35,13 @@ class SnakeRobot(AbstractRobot):
             color = colors[i % 4]
             p.changeVisualShape(item_id, i - 1, rgbaColor=[color[0], color[1], color[2], alpha])
 
-        if phantom:
+        if self.phantom:
             for joint_id in list(range(p.getNumJoints(item_id))) + [-1]:
                 p.setCollisionFilterGroupMask(item_id, joint_id, 0, 0)
 
         return item_id        
     
-    def set_config(self, config, item_id=None, sphereRadius=0.25):
+    def set_config(self, config, item_id=None):
         if item_id is None:
             item_id = self.item_id
         p.resetBaseVelocity(item_id, [0, 0, 0], [0, 0, 0])
