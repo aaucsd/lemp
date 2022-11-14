@@ -19,6 +19,7 @@ class RobotGroup(AbstractRobot):
         assert np.all([isinstance(robot, IndividualRobot) for robot in robots])
         self.robots = robots
         self.grouping_mask_fn = grouping_mask_fn
+        self.collision_eps = min([robot.collision_eps for robot in self.robots])
         limits_low, limits_high = self._get_limits()
         super(RobotGroup, self).__init__(limits_low=limits_low, 
                                          limits_high=limits_high, **kwargs)
