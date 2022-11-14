@@ -9,8 +9,8 @@ class AbstractRobot(MovableObject, ABC):
 
     # An abstract robot    
     def __init__(self, limits_low, limits_high, collision_eps, **kwargs):
-        self.limits_low = limits_low
-        self.limits_high = limits_high
+        self.limits_low = np.array(limits_low).reshape(-1)
+        self.limits_high = np.array(limits_high).reshape(-1)
         self.collision_eps = collision_eps
         self.config_dim = len(self.limits_low)
         super(AbstractRobot, self).__init__(**kwargs)
@@ -61,6 +61,9 @@ class AbstractRobot(MovableObject, ABC):
             if np.sum(np.abs(init - goal)) != 0:
                 break
         return init, goal
+    
+    def in_goal_region(self, state, goal):
+        return np.linalg.norm(state-goal) < self.collision_eps
     
     # =====================internal collision check module=======================
     
