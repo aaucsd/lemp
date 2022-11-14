@@ -15,4 +15,4 @@ class DualKukaRobot(RobotGroup):
         for base_position, base_orientation in zip(base_positions, base_orientations):
             robots.append(KukaRobot(base_position=base_position, base_orientation=base_orientation, urdf_file=urdf_file, collision_eps=collision_eps))
 
-        super(RobotGroup, self).__init__(robots=robots, **kwargs)
+        super(DualKukaRobot, self).__init__(robots=robots, **kwargs)
