@@ -1,5 +1,7 @@
 import numpy as np
 from PIL import Image
+import torch
+import random
 
 
 class DotDict(dict):
@@ -23,4 +25,11 @@ def save_gif(imgs, gif_name, duration=50):
     ims = [Image.fromarray(a_frame) for a_frame in a]
     ims[0].save(gif_name, save_all=True, append_images=ims[1:], loop=0, duration=duration)
     
+    
+def seed_everything(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    return seed
     
