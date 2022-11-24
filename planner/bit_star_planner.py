@@ -103,7 +103,7 @@ class BITStarPlanner(AbstractPlanner):
         return sample_array
 
     def get_random_point(self):
-        point = self.robot.uniform_sample()
+        point = self.env.robot.uniform_sample()
         return tuple(point)
 
     def is_point_free(self, point):
@@ -221,7 +221,7 @@ class BITStarPlanner(AbstractPlanner):
                 point = self.edges[point]
                 path.append(point)
             path.reverse()
-        return path if len(path) else None
+        return list(np.array(path)) if len(path) else None
 
     def path_length_calculate(self, path):
         path_length = 0
@@ -241,7 +241,6 @@ class BITStarPlanner(AbstractPlanner):
                 c_best = self.g_scores[self.goal]
                 self.prune(c_best)
                 self.samples.extend(self.informed_sample(c_best, self.batch_size, self.vertices))
-                self.T += self.batch_size
                 
                 self.old_vertices = set(self.vertices)
                 self.vertex_queue = [(self.get_point_value(point), point) for point in self.vertices]
