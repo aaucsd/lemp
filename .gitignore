@@ -1,5 +1,5 @@
 # For project
-data/visualization
+data/visualization/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
