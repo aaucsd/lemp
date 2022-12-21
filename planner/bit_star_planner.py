@@ -1,91 +1,40 @@
 import numpy as np
-from utils.utils import DotDict
+from utils.utils import create_dot_dict
+from scipy import special
 from planner.abstract_planner import AbstractPlanner
-
-
-class BITStarPlanner(AbstractPlanner):
-    
-    def __init__(self, num_batch)
-
-    @abstractmethod
-    def _plan(self, env, start, goal, timeout, **kwargs):
-        '''
-        return an instance of DotDict with:
-        1. solution: a list of waypoints. if there is no solution found, the value is None
-        '''
-        raise NotImplementedError
-        
-    @abstractmethod
-    def _num_node(self):
-        '''
-        return the number of sampled nodes
-        '''
-        raise NotImplementedError
-
-    def _catch_timeout(self, env, start, goal, timeout, **kwargs):
-        '''
-        return an instance of DotDict
-        '''
-        return create_dot_dict(solution=None)
-
-
-import numpy as np
 import math
 import heapq
+
 
 INF = float("inf")
 
 
-class BITStar:
-    def __init__(self, environment, maxIter=5, plot_flag=False, batch_size=200, T=1000, sampling=None):
+class BITStarPlanner(AbstractPlanner):
+    def __init__(self, num_batch, stop_when_success=True, eta=1.1):
+        self.num_batch = num_batch
+        self.stop_when_success = stop_when_success
 
-        self.env = environment
-
-        start, goal, bounds = tuple(environment.init_state), tuple(environment.goal_state), environment.bound
-
-        self.start = start
-        self.goal = goal
-
-        self.bounds = bounds
-        self.bounds = np.array(self.bounds).reshape((2, -1)).T
-        self.ranges = self.bounds[:, 1] - self.bounds[:, 0]
-        self.dimension = environment.config_dim
-
-        # This is the tree
-        self.vertices = []
-        self.edges = dict()  # key = point，value = parent
-        self.g_scores = dict()
-
-        self.samples = []
-        self.vertex_queue = []
-        self.edge_queue = []
-        self.old_vertices = set()
-
-        self.maxIter = maxIter
-        self.r = INF
-        self.batch_size = batch_size
-        self.T, self.T_max = 0, T
-        self.eta = 1.1  # tunable parameter
-        self.obj_radius = 1
-        self.resolution = 3
-
-        # the parameters for informed sampling
-        self.c_min = self.distance(self.start, self.goal)
-        self.center_point = None
-        self.C = None
-
-        # whether plot the middle planning process
-        self.plot_planning_process = plot_flag
-
-        if sampling is None:
-            self.sampling = self.informed_sample
-        else:
-            self.sampling = sampling
-
-        self.n_collision_points = 0
-        self.n_free_points = 2
+        self.batch_size = num_batch
+        self.eta = eta  # a parameter to determine the sampling radius after a solution is found and needs to keep being refined
 
     def setup_planning(self):
+        self.ranges = self.env.robot.limits_high - self.env.robot.limits_low
+        self.dimension = self.env.robot.config_dim
+        
+        self.vertices = []
+        self.edges = dict()  # key = point，value = parent
+        
+        # This is the tree
+        self.samples = []  # samples are not included in the tree nodes
+        self.vertex_queue = []
+        self.edge_queue = []
+        self.old_vertices = set()        
+        self.g_scores = dict()
+
+        self.r = INF
+        self.n_collision_points = 0
+        self.n_free_points = 2        
+
         # add goal to the samples
         self.samples.append(self.goal)
         self.g_scores[self.goal] = INF
@@ -100,20 +49,20 @@ class BITStar:
 
         return radius_constant
 
+      
     def radius_init(self):
-        from scipy import special
         # Hypersphere radius calculation
         n = self.dimension
         unit_ball_volume = np.pi ** (n / 2.0) / special.gamma(n / 2.0 + 1)
-        volume = np.abs(np.prod(self.ranges)) * self.n_free_points / (self.n_collision_points + self.n_free_points)
+        volume = np.abs(np.prod(self.ranges)) * self.n_free_points / (self.n_collision_points + self.n_free_points)  # the volume of free configuration space
         gamma = (1.0 + 1.0 / n) * volume / unit_ball_volume
         radius_constant = 2 * self.eta * (gamma ** (1.0 / n))
         return radius_constant
 
     def informed_sample_init(self):
+        self.c_min = self.distance(self.start, self.goal)
         self.center_point = np.array([(self.start[i] + self.goal[i]) / 2.0 for i in range(self.dimension)])
         a_1 = (np.array(self.goal) - np.array(self.start)) / self.c_min
-        id1_t = np.array([1.0] * self.dimension)
         M = np.dot(a_1.reshape((-1, 1)), id1_t.reshape((1, -1)))
         U, S, Vh = np.linalg.svd(M, 1, 1)
         self.C = np.dot(np.dot(U, np.diag([1] * (self.dimension - 1) + [np.linalg.det(U) * np.linalg.det(np.transpose(Vh))])), Vh)
@@ -145,16 +94,11 @@ class BITStar:
         return sample_array
 
     def get_random_point(self):
-        point = self.bounds[:, 0] + np.random.random(self.dimension) * self.ranges
+        point = self.env.robot.uniform_sample()
         return tuple(point)
 
     def is_point_free(self, point):
-        if self.dimension == 2:
-            result = self.env._state_fp(np.array(point))
-        elif self.dimension == 3:
-            result = self.env._state_fp(np.array(point))
-        else:
-            result = self.env._state_fp(np.array(point))
+        result = self.env.state_fp(np.array(point))
         if result:
             self.n_free_points += 1
         else:
@@ -162,8 +106,7 @@ class BITStar:
         return result
 
     def is_edge_free(self, edge):
-        result = self.env._edge_fp(np.array(edge[0]), np.array(edge[1]))
-        # self.T += self.env.k
+        result = self.env.edge_fp(np.array(edge[0]), np.array(edge[1]))
         return result
 
     def get_g_score(self, point):
@@ -194,8 +137,7 @@ class BITStar:
 
     def get_edge_value(self, edge):
         # sort value for edge
-        return self.get_g_score(edge[0]) + self.heuristic_cost(edge[0], edge[1]) + self.heuristic_cost(edge[1],
-                                                                                                       self.goal)
+        return self.get_g_score(edge[0]) + self.heuristic_cost(edge[0], edge[1]) + self.heuristic_cost(edge[1], self.goal)
 
     def get_point_value(self, point):
         # sort value for point
@@ -270,7 +212,7 @@ class BITStar:
                 point = self.edges[point]
                 path.append(point)
             path.reverse()
-        return path
+        return list(np.array(path)) if len(path) else None
 
     def path_length_calculate(self, path):
         path_length = 0
@@ -278,22 +220,18 @@ class BITStar:
             path_length += self.distance(path[i], path[i + 1])
         return path_length
 
-    def plan(self, pathLengthLimit, refine_time_budget=None, time_budget=None):
-        collision_checks = self.env.collision_check_count
-        if time_budget is None:
-            time_budget = INF
-        if refine_time_budget is None:
-            refine_time_budget = 10
-
+    def _plan(self, env, start, goal, timeout, **kwargs):
+        
+        self.env = env
+        self.start = tuple(start)
+        self.goal = tuple(goal)
         self.setup_planning()
-        init_time = time()
 
-        while self.T < self.T_max and (time() - init_time < time_budget):
+        while True:
             if not self.vertex_queue and not self.edge_queue:
                 c_best = self.g_scores[self.goal]
                 self.prune(c_best)
-                self.samples.extend(self.sampling(c_best, self.batch_size, self.vertices))
-                self.T += self.batch_size
+                self.samples.extend(self.informed_sample(c_best, self.batch_size, self.vertices))
                 
                 self.old_vertices = set(self.vertices)
                 self.vertex_queue = [(self.get_point_value(point), point) for point in self.vertices]
@@ -328,15 +266,16 @@ class BITStar:
                             heapq.heappush(self.vertex_queue, (self.get_point_value(bestEdge[1]), bestEdge[1]))
 
                         self.edge_queue = [item for item in self.edge_queue if item[1][1] != bestEdge[1] or \
-                                           self.get_g_score(item[1][0]) + self.heuristic_cost(item[1][0], item[1][
-                            1]) < self.get_g_score(item[1][0])]
-                        heapq.heapify(
-                            self.edge_queue)  # Rebuild the priority queue because it will be destroyed after the element is removed
+                                           (self.get_g_score(item[1][0]) + self.heuristic_cost(item[1][0], item[1][1])) < self.get_g_score(item[1][0])]
+                        heapq.heapify(self.edge_queue)  # Rebuild the priority queue because it will be destroyed after the element is removed
 
             else:
                 self.vertex_queue = []
                 self.edge_queue = []
-            if self.g_scores[self.goal] < pathLengthLimit and (time() - init_time > refine_time_budget):
+
+            if (self.stop_when_success) and self.g_scores[self.goal] < float('inf'):
                 break
-        return self.samples, self.edges, self.env.collision_check_count - collision_checks, \
-               self.g_scores[self.goal], self.T, time() - init_time  
+
+            self.check_timeout(timeout)
+        
+        return create_dot_dict(solution=self.get_best_path())
