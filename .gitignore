@@ -1,4 +1,5 @@
 # For project
+*.yml
 data/visualization/
 
 # Byte-compiled / optimized / DLL files
