@@ -13,9 +13,9 @@ class SearchTree:
             return None
         
         # find the one with the lowest cost
-        reached_idxs = np.where(self.in_goal_region)[0]
+        reached_idxs = np.where(self.in_goal_region)
         costs = np.array(self.costs)[reached_idxs]
-        current_index = reached_idxs[np.argmin(costs)]
+        current_index = reached_idxs[0][np.argmin(costs)]
 
         path = []
         cost = 0

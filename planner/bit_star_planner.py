@@ -49,14 +49,6 @@ class BITStarPlanner(AbstractPlanner):
 
         return radius_constant
 
-    def _num_node(self):
-        return len(self.samples) + len(self.vertices)
-
-    def _catch_timeout(self, env, start, goal, timeout, **kwargs):
-        if not self.stop_when_success:
-            return create_dot_dict(solution=self.get_best_path())
-        else:
-            return create_dot_dict(solution=None)
       
     def radius_init(self):
         # Hypersphere radius calculation
@@ -71,7 +63,6 @@ class BITStarPlanner(AbstractPlanner):
         self.c_min = self.distance(self.start, self.goal)
         self.center_point = np.array([(self.start[i] + self.goal[i]) / 2.0 for i in range(self.dimension)])
         a_1 = (np.array(self.goal) - np.array(self.start)) / self.c_min
-        id1_t = np.array([1.0] * self.dimension)
         M = np.dot(a_1.reshape((-1, 1)), id1_t.reshape((1, -1)))
         U, S, Vh = np.linalg.svd(M, 1, 1)
         self.C = np.dot(np.dot(U, np.diag([1] * (self.dimension - 1) + [np.linalg.det(U) * np.linalg.det(np.transpose(Vh))])), Vh)
