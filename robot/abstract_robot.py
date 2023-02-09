@@ -55,6 +55,18 @@ class AbstractRobot(MovableObject, ABC):
         else:
             return positive, negative
 
+    def sample_n_free_points(self, n):
+        positive = []
+        cnt = 0
+        while cnt < n:
+            state = self.uniform_sample()
+            if self._state_fp(state):
+                positive.append(state)
+                cnt += 1
+
+        return positive
+
+
     def sample_random_init_goal(self):
         while True:
             init, goal = self.sample_free_config(), self.sample_free_config()

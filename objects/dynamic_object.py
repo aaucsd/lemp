@@ -47,7 +47,7 @@ class MovableObjectFactory:
     @staticmethod
     def create_movable_object_class(ObjectX, MovableXObject):
         '''
-        Argument: turning a object class into a movable object class
+        Argument: turning an object class into a movable object class
         '''
         assert not issubclass(ObjectX, MovableObject)
         assert issubclass(MovableXObject, MovableObject)
