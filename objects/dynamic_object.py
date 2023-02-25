@@ -40,7 +40,12 @@ class DynamicObject(AbstractObject):
 
     def set_config_at_time(self, t):
         spec = self.trajectory.get_spec(t)
-        self.trajectory.set_spec(self.item, spec) 
+        self.trajectory.set_spec(self.item, spec)
+
+    def load2pybullet(self, **kwargs):
+        print('loading dynamic object')
+        item_id = self.item.load2pybullet(**kwargs)
+        return item_id
         
 
 class MovableObjectFactory:      

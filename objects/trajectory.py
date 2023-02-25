@@ -22,8 +22,9 @@ class WaypointDiscreteTrajectory(AbstractTrajectory):
         self.waypoints = waypoints
 
     def get_spec(self, t):
-        assert 0<=t<=(len(self.waypoints)-1)
         assert isinstance(t, int)
+        if t != -1:
+            assert 0<=t<=(len(self.waypoints)-1)
         return self.waypoints[t]
         
     def set_spec(self, obstacle, spec):
@@ -40,7 +41,10 @@ class WaypointLinearTrajectory(AbstractTrajectory):
         self.waypoints = waypoints
 
     def get_spec(self, t):
-        assert 0<=t<=(len(self.waypoints)-1)       
+        if t == -1 or t >= len(self.waypoints)-1:
+            return self.waypoints[-1]
+        # if t != -1:
+        #     assert 0<=t<=(len(self.waypoints)-1)
         t_prev, t_next = int(np.floor(t)), int(np.ceil(t))
         spec_prev, spec_next = self.waypoints[t_prev], self.waypoints[t_next]
         return spec_prev + (spec_next-spec_prev)*(t-t_prev)

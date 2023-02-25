@@ -5,9 +5,8 @@ from torch_geometric.nn import knn_graph
 from torch_sparse import coalesce
 
 
-from planner.search_tree import SearchTree
 from utils.utils import create_dot_dict
-from dist_utils import dijkstra
+from planner.dist_utils import dijkstra
 from planner.abstract_planner import AbstractPlanner
 
 
@@ -46,7 +45,7 @@ class SippPlanner(AbstractPlanner):
     def get_cfg_obs(self):
 
         time_cfg_obs = OrderedDict()
-        ### 2/8 ###
+
         max_time_obs = len(self.obs_traj)-1
         self.speed = 1 / max_time_obs
         ##########
@@ -81,7 +80,13 @@ class SippPlanner(AbstractPlanner):
 
 
     def setup_planning(self):
-        self.obs_traj = self.env.object.trajectory.waypoints
+        num_objects = len(self.env.objects)
+
+        all_traj = np.concatenate([np.array(self.env.objects[i].trajectory.waypoints) for i in range(num_objects)], axis=1)
+        all_traj = [all_traj[i] for i in range(all_traj.shape[0])]
+
+        self.obs_traj = all_traj
+
         self.create_graph()
         self.start_index = 0
         self.goal_index = len(self.points) - 1
@@ -100,14 +105,12 @@ class SippPlanner(AbstractPlanner):
         K = int(np.ceil(d / self.speed))
 
         # mine waiting
-        self.env.set_config(self.points[src])
         for time in range(src_arr_time, mov_start_t+1):
-            # self.collision_check += 1
-            if not self.env.object._state_fp(self.time_cfg_obs[min(time, self.max_time_obs)]):
+            if not self.env.state_fp(self.points[src], min(time, self.max_time_obs)):
                 return False
 
         # mine moving
-        cc = self.env.robot._edge_fp_dynamic(self.points[src], self.points[dest], mov_start_t, min(mov_start_t + K, self.max_time_obs))
+        cc = self.env.edge_fp(self.points[src], self.points[dest], mov_start_t, min(mov_start_t + K, self.max_time_obs))
 
         if not cc:
             return False
@@ -150,18 +153,28 @@ class SippPlanner(AbstractPlanner):
         return succs
 
     def generatePath(self, arr_time, prev):
-        path = []
+        discrete_path = []
         for i in range(len(self.safe_intervals[self.goal_index])):
             goal = (self.goal_index, i)
             if goal in arr_time.keys():
-                path = [(self.goal_index, arr_time[goal])]
+                discrete_path = [(self.points[self.goal_index], arr_time[goal])]
                 break
 
         s = goal
         while prev[s] != (-1,-1):
-            path.append((prev[s][0], arr_time[prev[s]]))
+            discrete_path.append((self.points[prev[s][0]], arr_time[prev[s]]))
             s = prev[s]
-        path.reverse()
+        discrete_path.reverse()
+
+        path = []
+        for i in range(len(discrete_path)-1):
+            path.append(discrete_path[i][0])
+            prev_point, prev_t = discrete_path[i][0], discrete_path[i][1]
+            next_point, next_t = discrete_path[i+1][0], discrete_path[i+1][1]
+            for k in range(1, next_t - prev_t):
+                path.append(prev_point + (next_point - prev_point)/np.linalg.norm(next_point - prev_point) * self.speed * k)
+        path.append(discrete_path[-1][0])
+
         return path
 
 
@@ -171,6 +184,7 @@ class SippPlanner(AbstractPlanner):
         self.start = tuple(start)
         self.goal = tuple(goal)
         self.points = [self.start] + self.env.robot.sample_n_free_points(self.num_samples) + [self.goal]
+        self.points = [np.array(x) for x in self.points]
         if not self.setup_planning():
             return create_dot_dict(solution=None)
 
