@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 from time import perf_counter
+
+from environment.static_env import StaticEnv
+from environment.dynamic_env import DynamicEnv
 from utils.utils import DotDict
 
 
@@ -18,7 +21,11 @@ class AbstractPlanner(ABC):
         3. num_collision_check: the number of collision checking during the planning
         4. num_node: the number of sampled nodes
         '''
-        assert env.state_fp(start) and env.state_fp(goal)
+        if isinstance(env, StaticEnv):
+            assert env.state_fp(start) and env.state_fp(goal)
+        elif isinstance(env, DynamicEnv):
+            assert env.state_fp(start,0) and env.state_fp(goal,-1)
+
         self.t0 = perf_counter()
         try:
             result = self._plan(env, start, goal, timeout, **kwargs)
