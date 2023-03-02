@@ -50,11 +50,21 @@ class GNNDynamicPlanner(LearnedPlanner):
 
         return create_dot_dict(solution=path)
 
-    def create_graph(self):
-        graph_data = knn_graph_from_points(self.points, self.k_neighbors)
-        self.edges = graph_data.edges
-        self.edge_index = edge_index.edge_index
-        self.edge_cost = edge_cost.edge_cost
+    def create_graph(self, points, k):
+        edge_index = knn_graph(torch.FloatTensor(points), k=k, loop=True)
+        edge_index = torch.cat((edge_index, edge_index.flip(0)), dim=-1)
+        edge_index_torch, _ = coalesce(edge_index, None, len(points), len(points))
+        edge_index = edge_index_torch.data.cpu().numpy().T
+        edge_cost = defaultdict(list)
+        edges = defaultdict(list)
+        for i, edge in enumerate(edge_index):
+            edge_cost[edge[1]].append(np.linalg.norm(points[edge[1]] - points[edge[0]]))
+
+            edges[edge[1]].append(edge[0])
+
+        self.edges = edges
+        self.edge_index = edge_index
+        self.edge_cost = edge_cost
 
     def create_data(self, points, edge_index=None, k=50):
         goal_index = -1
@@ -85,7 +95,7 @@ class GNNDynamicPlanner(LearnedPlanner):
         points = [start] + env.robot.sample_n_free_points(self.num_samples) + [goal]
         self.create_graph(points, k)
 
-        data = self.create_data(points, edge_index=self.edge_index, k=k)
+        data = self.create_data(points, k=k)
 
         success = False
         path = []

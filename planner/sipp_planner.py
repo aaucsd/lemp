@@ -3,6 +3,7 @@ import numpy as np
 import torch
 from torch_geometric.nn import knn_graph
 from torch_sparse import coalesce
+from utils.graphs import knn_graph_from_points
 
 
 from utils.utils import create_dot_dict
@@ -18,7 +19,7 @@ class SippPlanner(AbstractPlanner):
 
     def _num_node(self):
         ## return nodes on the graph
-        pass
+        return self.num_samples
 
     def _catch_timeout(self, env, start, goal, timeout, **kwargs):
         if not self.stop_when_success:
@@ -27,20 +28,10 @@ class SippPlanner(AbstractPlanner):
             return create_dot_dict(solution=None)
 
     def create_graph(self):
-        edge_index = knn_graph(torch.FloatTensor(self.points), k=50, loop=True)
-        edge_index = torch.cat((edge_index, edge_index.flip(0)), dim=-1)
-        edge_index_torch, _ = coalesce(edge_index, None, len(self.points), len(self.points))
-        edge_index = edge_index_torch.data.cpu().numpy().T
-        edge_cost = defaultdict(list)
-        edges = defaultdict(list)
-        for i, edge in enumerate(edge_index):
-            edge_cost[edge[1]].append(np.linalg.norm(self.points[edge[1]] - self.points[edge[0]]))
-
-            edges[edge[1]].append(edge[0])
-
-        self.edges = edges
-        self.edge_index = edge_index
-        self.edge_cost = edge_cost
+        graph_data = knn_graph_from_points(self.points, self.k_neighbors)
+        self.edges = graph_data.edges
+        self.edge_index = edge_index.edge_index
+        self.edge_cost = edge_cost.edge_cost
 
     def get_cfg_obs(self):
 
