@@ -3,7 +3,7 @@ from time import perf_counter
 
 from environment.static_env import StaticEnv
 from environment.dynamic_env import DynamicEnv
-from utils.utils import DotDict
+from utils.utils import DotDict, create_dot_dict
 
 
 class TimeOutException(Exception):

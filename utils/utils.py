@@ -32,4 +32,7 @@ def seed_everything(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
     return seed
-    
+
+
+def to_np(tensor):
+    return tensor.data.cpu().numpy()

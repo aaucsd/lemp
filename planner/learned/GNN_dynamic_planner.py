@@ -3,6 +3,7 @@ from planner.learned.model.GNN_dynamic import GNNet, PolicyHead
 from planner.learned.model.base_models import PositionalEncoder
 from planner.learned_planner import LearnedPlanner
 from utils.utils import seed_everything, create_dot_dict
+from utils.graphs import knn_graph_from_points
 
 from collections import OrderedDict, defaultdict
 from torch_sparse import coalesce
@@ -53,8 +54,8 @@ class GNNDynamicPlanner(LearnedPlanner):
     def create_graph(self):
         graph_data = knn_graph_from_points(self.points, self.k_neighbors)
         self.edges = graph_data.edges
-        self.edge_index = edge_index.edge_index
-        self.edge_cost = edge_cost.edge_cost
+        self.edge_index = graph_data.edge_index
+        self.edge_cost = graph_data.edge_cost
 
     def create_data(self, points, edge_index=None, k=50):
         goal_index = -1
