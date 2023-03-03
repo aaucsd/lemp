@@ -24,7 +24,7 @@ class LearnedPlanner(AbstractPlanner):
                 if path[_] is not None:
                     m.load_state_dict(torch.load(path[_]))
         else:
-           self.model.load_state_dict(torch.load(path))
+            self.model.load_state_dict(torch.load(path))
         self.loaded = True
 
 
