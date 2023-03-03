@@ -65,7 +65,7 @@ class GNNStaticPlanner(LearnedPlanner):
     def _explore(self, env, start, goal, model_gnn, timeout, k, n_sample, loop=10):
         success = False
         path = []
-        points = [start] + [goal] + self.env.robot.sample_n_free_points(n_sample) 
+        points = [start] + [goal] + env.robot.sample_n_free_points(n_sample) 
 
         explored = [0]
         explored_edges = [[0, 0]]
