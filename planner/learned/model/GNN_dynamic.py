@@ -2,7 +2,7 @@ import torch
 from torch.nn import Sequential as Seq, Linear as Lin, ReLU, Sigmoid
 from torch_geometric.nn import MessagePassing
 
-from base_models import Block
+from planner.learned.model.base_models import Block
 
 
 class MPNN(MessagePassing):

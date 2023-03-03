@@ -3,6 +3,8 @@ from planner.learned_planner import LearnedPlanner
 from utils.utils import seed_everything, create_dot_dict, to_np
 from utils.graphs import knn_graph_from_points
 
+from planner.learned.model.GNN_static import GNNet
+
 from torch_sparse import coalesce
 from torch_geometric.nn import knn_graph
 from torch_geometric.data import Data
@@ -12,16 +14,15 @@ import numpy as np
 
 
 class GNNStaticPlanner(LearnedPlanner):
-    def __init__(self, num_batch, model, k_neighbors=50, **kwargs):
+    def __init__(self, num_batch, model_args, k_neighbors=50, **kwargs):
         self.num_batch = num_batch
-        self.model = model
+        self.model = GNNet(**model_args)
         self.k_neigbors = k_neighbors
         self.num_node = 0
 
         super(GNNStaticPlanner, self).__init__(self.model, **kwargs)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        for model_ in self.model:
-            model_.to(self.device)
+        self.model.to(self.device)
 
     def _num_node(self):
         return self.num_node
@@ -32,7 +33,7 @@ class GNNStaticPlanner(LearnedPlanner):
         self.model.eval()
         path = self._explore(env, start, goal, self.model, timeout, k=self.k_neigbors, n_sample=self.num_batch)
 
-        return create_dot_dict(solution=path)
+        return create_dot_dict(solution=path if len(path) else None)
 
     def create_graph(self):
         graph_data = knn_graph_from_points(self.points, self.k_neighbors)
@@ -40,10 +41,11 @@ class GNNStaticPlanner(LearnedPlanner):
         self.edge_index = graph_data.edge_index
         self.edge_cost = graph_data.edge_cost
 
-    def create_data(self, points, edge_index=None, k=50):
+    def create_data(self, points, obstacles, edge_index=None, k=50):
         goal_index = 1
         data = Data(goal=torch.FloatTensor(points[goal_index]))
-        data.v = torch.FloatTensor(points)
+        data.v = torch.FloatTensor(np.array(points))
+        data.obstacles = torch.FloatTensor()
 
         if edge_index is not None:
             data.edge_index = torch.tensor(edge_index.T).to(self.device)
@@ -73,7 +75,7 @@ class GNNStaticPlanner(LearnedPlanner):
 
         while not success:
 
-            data = self.create_data(points, k)
+            data = self.create_data(points, env.get_obstacles(), k=k)
             self.num_node = len(data.v)
             policy = model_gnn(**data.to(self.device).to_dict(), loop=loop)
             policy = policy.cpu()
@@ -89,12 +91,12 @@ class GNNStaticPlanner(LearnedPlanner):
                 end_a, end_b = int(end_a), int(end_b)
                 end_a = explored[end_a]
                 explored_edges.extend([[end_a, end_b], [end_b, end_a]])
-                if env._edge_fp(to_np(data.v[end_a]), to_np(data.v[end_b])):
+                if env.edge_fp(to_np(data.v[end_a]), to_np(data.v[end_b])):
                     explored.append(end_b)
                     prev[end_b] = end_a
 
                     policy[:, end_b] = 0
-                    if env.in_goal_region(to_np(data.v[end_b]), to_np(data.v[1])):
+                    if end_b==1:
                         success = True
                         path = [end_b]
                         node = end_b
@@ -114,7 +116,7 @@ class GNNStaticPlanner(LearnedPlanner):
                 new_points = env.sample_n_points(n_sample, need_negative=True)
                 points = points + list(new_points)
        
-        return create_dot_dict(solution=list(data.v[path].data.cpu().numpy()) if len(path) else None)
+        return list(data.v[path].data.cpu().numpy())
 
 
 

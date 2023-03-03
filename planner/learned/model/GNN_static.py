@@ -2,7 +2,7 @@ import torch
 from torch.nn import Sequential as Seq, Linear as Lin, ReLU, Sigmoid
 from torch_geometric.nn import MessagePassing
 
-from base_models import Block
+from planner.learned.model.base_models import Block
 
 
 class MPNN(MessagePassing):
@@ -73,8 +73,8 @@ class GNNet(torch.nn.Module):
             obs_edge_code = self.obs_edge_code(obstacles.view(-1, self.obs_size))
             
             for na, ea in zip(self.node_attentions, self.edge_attentions):
-                x, obs_node_code = na(x, obs_node_code)
-                y, obs_edge_code = ea(y, obs_edge_code)
+                x = na(x, obs_node_code)
+                y = ea(y, obs_edge_code)
 
         for i in range(loop):
             x = self.mpnn(x, edge_index, y)
