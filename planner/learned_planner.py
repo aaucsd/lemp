@@ -7,6 +7,10 @@ class LearnedPlanner(AbstractPlanner):
         self.model = model
         self.loaded = False
 
+    def _num_node(self):
+        ## return nodes on the graph
+        raise NotImplementedError
+
     def save_model(self, path):
         if isinstance(self.model, list):
             if not isinstance(path, list):
@@ -20,9 +24,9 @@ class LearnedPlanner(AbstractPlanner):
         if isinstance(self.model, list):
             if not isinstance(path, list):
                 raise ValueError("paths should be a list of paths")
-            for _, m in enumerate(self.model):
-                if path[_] is not None:
-                    m.load_state_dict(torch.load(path[_]))
+            for _, p in enumerate(path):
+                if self.model[_] is not None:
+                    self.model[_].load_state_dict(torch.load(p, map_location=torch.device('cpu')))
         else:
             self.model.load_state_dict(torch.load(path))
         self.loaded = True

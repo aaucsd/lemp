@@ -3,6 +3,8 @@ import torch
 from torch_geometric.nn import knn_graph
 from torch_sparse import coalesce
 from utils.utils import create_dot_dict
+from collections import defaultdict
+
 
 def knn_graph_from_points(points, k):
     edge_index = knn_graph(torch.FloatTensor(np.array(points)), k=k, loop=True)

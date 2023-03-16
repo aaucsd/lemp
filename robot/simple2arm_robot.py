@@ -29,6 +29,16 @@ class Simple2ArmRobot(IndividualRobot):
         self.item_id = item_id
         return item_id
 
+    def get_workspace_observation(self):
+        points = []
+
+        for effector in range(self.config_dim + 1):
+            point = p.getLinkState(self.item_id, effector)[0]
+            point = (point[0], point[1], point[2])
+            points.append(point)
+
+        return np.array(points).reshape((-1))
+
 
 if __name__ == '__main__':
     robot = Simple2ArmRobot()

@@ -63,3 +63,9 @@ class IndividualRobot(AbstractRobot, ABC):
         else:
             self.collision_check_count += 1
             return False
+
+    def get_workspace_observation(self):
+        '''
+        Get the workspace observation
+        '''
+        raise NotImplementedError

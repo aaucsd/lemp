@@ -1,8 +1,5 @@
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import numpy as np
-import torch
-from torch_geometric.nn import knn_graph
-from torch_sparse import coalesce
 from utils.graphs import knn_graph_from_points
 
 
@@ -30,8 +27,8 @@ class SippPlanner(AbstractPlanner):
     def create_graph(self):
         graph_data = knn_graph_from_points(self.points, self.k_neighbors)
         self.edges = graph_data.edges
-        self.edge_index = edge_index.edge_index
-        self.edge_cost = edge_cost.edge_cost
+        self.edge_index = graph_data.edge_index
+        self.edge_cost = graph_data.edge_cost
 
     def get_cfg_obs(self):
 
