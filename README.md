@@ -1,6 +1,6 @@
 LEMP: Learning-Enabled Motion Planning
 -----------------------
-**Status: Maintenance**
+**Status: Actively Updating**
 
 This repo is a collection of research projects for learning-enabled motion planning.
 
@@ -23,3 +23,19 @@ unzip *.zip
 ## Quickstart
 
 We provide a bunch of useful notebooks in [examples](./examples).
+
+| Notebook                                   | Description                                                 |
+|--------------------------------------------|-------------------------------------------------------------|
+| [bit_star_planner.ipynb](examples/bit_star_planner.ipynb)            | Example of the BIT* algorithm for planning.   |
+| [dataset.ipynb](examples/dataset.ipynb)                               | Saving and loading dataset for static obstacles.                   |
+| [dataset_dynamic.ipynb](examples/dataset_dynamic.ipynb)              | Saving and loading Dataset for dynamic obstacles.|
+| [dynamic_gnn_planner.ipynb](examples/dynamic_gnn_planner.ipynb)      | Integration of GNN models with a dynamic planner.           |
+| [grouping_robot.ipynb](examples/grouping_robot.ipynb)                | Grouping multiple robot arms as one robot to plan                      |
+| [load_environment.ipynb](examples/load_environment.ipynb)            | Visualization of trajectories in environments.              |
+| [load_object.ipynb](examples/load_object.ipynb)                      | Load objects / obstacles to the environment.               |
+| [load_robot.ipynb](examples/load_robot.ipynb)                        | Load robot to the environment.              |
+| [object_follow_trajectory.ipynb](examples/object_follow_trajectory.ipynb) | Trajectory visualization for objects.                      |
+| [robot_follow_trajectory.ipynb](examples/robot_follow_trajectory.ipynb) | Trajectory visualization for robots.                      |
+| [rrt_star_planner.ipynb](examples/rrt_star_planner.ipynb)              | Example of the RRT* algorithm for planning.                |
+| [sipp_planner.ipynb](examples/sipp_planner.ipynb)                      | Example of the SIPP* algorithm for dynamic planning. |
+| [static_gnn_planner.ipynb](examples/static_gnn_planner.ipynb)          | Integration of GNN models with a static planner. |
