@@ -1,6 +1,6 @@
 🛰 LEMP: Learning-Enabled Motion Planning
 -----------------------
-**Status: Actively Updating**
+**Status: Active Development**
 
 LEMP (Learning-Enabled Motion Planning) is a light-weight framework that combines the power of machine learning with traditional motion planning techniques. With a focus on fast iteration, LEMP provides a rapid and agile solution solution for developing learning algorithms for motion planning tasks.
 
