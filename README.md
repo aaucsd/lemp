@@ -1,8 +1,8 @@
-LEMP: Learning-Enabled Motion Planning
+🛰 LEMP: Learning-Enabled Motion Planning
 -----------------------
 **Status: Actively Updating**
 
-This repo is a collection of research projects for learning-enabled motion planning.
+LEMP (Learning-Enabled Motion Planning) is a light-weight framework that combines the power of machine learning with traditional motion planning techniques. With a focus on fast iteration, LEMP provides a rapid and agile solution solution for developing learning algorithms for motion planning tasks.
 
 ## Installation
 
