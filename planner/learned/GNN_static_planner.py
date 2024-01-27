@@ -113,7 +113,7 @@ class GNNStaticPlanner(LearnedPlanner):
 
             if not success:
                 # ----------------------------------------resample----------------------------------------
-                new_points = env.sample_n_points(n_sample, need_negative=True)
+                new_points = env.robot.sample_n_free_points(n_sample)
                 points = points + list(new_points)
        
         return list(data.v[path].data.cpu().numpy())

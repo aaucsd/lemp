@@ -8,16 +8,22 @@ LEMP (Learning-Enabled Motion Planning) is a light-weight framework that combine
 
 ### Create Conda Environment
 ```bash
-conda create -n lemp python=3.8
-conda activate lemp
-conda install -c conda-forge jupyterlab numpy matplotlib
-pip install pybullet Pillow scipy
+$ conda create -n lemp python=3.8
+$ conda activate lemp
+$ conda install -c conda-forge jupyterlab numpy matplotlib
+$ pip install pybullet Pillow scipy
+# install torch following the instructions from the pytorch website, for example:
+$ conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+# install torch-geometric following the instructions from the torch-geometric website, for example:
+$ pip install pyg_lib torch_scatter torch_sparse torch_cluster torch_spline_conv -f https://data.pyg.org/whl/torch-2.1.0+cu118.html
+$ pip install torch_geometric
 ```
 
 ### Unzip the Datasets
 ```bash
 cd data
-unzip *.zip
+unzip static.zip
+unzip dynamic.zip
 ```
 
 ## Quickstart

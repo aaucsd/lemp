@@ -1,7 +1,12 @@
 # For project
 .vscode
+__MACOSX
 *.yml
+.ipynb_checkpoints
 data/visualization/
+data/static
+data/dynamic
+data/yaml_dataset
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
