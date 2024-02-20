@@ -1,6 +1,7 @@
 import torch
 
 from planner.abstract_planner import AbstractPlanner
+from torch_geometric.typing import Adj, OptTensor, PairTensor
 
 class LearnedPlanner(AbstractPlanner):
     def __init__(self, model, **kwargs):

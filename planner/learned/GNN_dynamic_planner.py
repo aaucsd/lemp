@@ -9,7 +9,7 @@ from collections import OrderedDict, defaultdict
 from torch_sparse import coalesce
 from torch_geometric.nn import knn_graph
 from torch_geometric.data import Data
-
+from torch_geometric.typing import Adj, OptTensor, PairTensor
 from tqdm import tqdm as tqdm
 import numpy as np
 
@@ -133,7 +133,7 @@ class GNNDynamicPlanner(LearnedPlanner):
             time_tick = 0
 
             costs = {0: 0.}
-            path = [(data.v[0].numpy(), 0)]  # (node, time_cost)
+            path = [(data.v[0].cpu().numpy(), 0)]  # (node, time_cost)
 
             success = False
             stay_counter = 0
@@ -180,11 +180,11 @@ class GNNDynamicPlanner(LearnedPlanner):
                             stay_counter += 1
                             costs[next_node] = costs[cur_node] + self.speed
                             time_tick += 1
-                            path.append((data.v[next_node].numpy(), time_tick))
+                            path.append((data.v[next_node].cpu().numpy(), time_tick))
                         else:
                             costs[next_node] = costs[cur_node] + dist
                             time_tick += int(np.ceil(dist / self.speed))
-                            path.append((data.v[next_node].numpy(), time_tick))
+                            path.append((data.v[next_node].cpu().numpy(), time_tick))
                             ####### there is no way back ###########
                             edge_feat[:, cur_node, :] = 0
                             stay_counter = 0
